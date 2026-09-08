@@ -13,6 +13,8 @@ from .session import NotAuthenticatedError, RequestFailedError, SceleSession
 
 
 def _session(ctx) -> SceleSession:
+    if ctx.obj.get("session") is None:
+        ctx.obj["session"] = SceleSession()
     return ctx.obj["session"]
 
 
@@ -59,7 +61,7 @@ class _WatchGroup(click.Group):
 @click.pass_context
 def main(ctx, compact, fmt):
     """Command-line client for SCELE (Moodle) at Fasilkom UI."""
-    ctx.obj = {"compact": compact, "format": fmt, "session": SceleSession()}
+    ctx.obj = {"compact": compact, "format": fmt, "session": None}
 
 
 @main.command()
