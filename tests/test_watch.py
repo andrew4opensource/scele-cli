@@ -189,6 +189,12 @@ def test_bad_name_rejected():
         watch.create("bad/name", ["courses"], interval=30, webhooks=[], headers=[], on="change")
 
 
+@pytest.mark.parametrize("name", [".", ".."])
+def test_dot_names_rejected(name):
+    with pytest.raises(watch.WatchError):
+        watch.create(name, ["courses"], interval=30, webhooks=[], headers=[], on="change")
+
+
 def test_missing_watch_errors():
     with pytest.raises(watch.WatchError):
         watch.tick("nope")

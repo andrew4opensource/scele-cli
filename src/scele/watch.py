@@ -3,7 +3,8 @@ exact line-level changes in its JSON output, optionally to a webhook.
 
 Storage (POSIX): ``~/.config/scele/watches/<name>/``
   watch.json   -- immutable config {name, command, interval, webhooks, headers, on, created}
-  state.json   -- {last_hash, last_canonical, last_run, last_change, tick_count}
+  state.json   -- {last_hash, last_run, last_change, tick_count}
+  last_canonical.txt -- canonical text of the last capture (for diffing)
   events.jsonl -- append-only log of change / error / webhook events
   daemon.pid   -- {pid, started} for the detached process, when running detached
   daemon.log   -- stdout/stderr of the detached process
@@ -27,6 +28,7 @@ from .config import watches_dir
 
 MIN_INTERVAL = 30
 DEFAULT_INTERVAL = 300
+MAX_EVENTS = 1000
 _VOLATILE_KEYS = {"sesskey", "token", "token_preview", "age_days"}
 _NAME_RE = re.compile(r"^[A-Za-z0-9._-]+$")
 
@@ -103,7 +105,7 @@ def run_command(command: list[str]) -> dict:
 # ---------------------------------------------------------------- storage
 
 def _slug(name: str) -> str:
-    if not _NAME_RE.match(name or ""):
+    if name in (".", "..") or not _NAME_RE.match(name or ""):
         raise WatchError(f"invalid watch name {name!r}: use letters, digits, '.', '_', '-'")
     return name
 
@@ -119,14 +121,33 @@ def _read_json(path: Path, default):
         return default
 
 
+def _read_text(path: Path) -> str:
+    try:
+        return path.read_text(encoding="utf-8")
+    except OSError:
+        return ""
+
+
 def _write_json(path: Path, obj) -> None:
     path.write_text(json.dumps(obj, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def _append_event(name: str, event: dict) -> None:
     event = {"at": _now(), **event}
-    with (_dir(name) / "events.jsonl").open("a", encoding="utf-8") as fh:
+    path = _dir(name) / "events.jsonl"
+    with path.open("a", encoding="utf-8") as fh:
         fh.write(json.dumps(event, ensure_ascii=False) + "\n")
+    _trim_events(path)
+
+
+def _trim_events(path: Path) -> None:
+    """Keep events.jsonl bounded; rewrite only once it drifts well past the cap."""
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return
+    if len(lines) > MAX_EVENTS * 2:
+        path.write_text("\n".join(lines[-MAX_EVENTS:]) + "\n", encoding="utf-8")
 
 
 def _pid_alive(pid: int) -> bool:
@@ -257,14 +278,18 @@ def tick(name: str) -> dict:
         _write_json(d / "state.json", state)
         return event
 
+    canonical_path = d / "last_canonical.txt"
     new_text = canonical(result["data"])
     new_hash = _hash(new_text)
-    prev_text = state.get("last_canonical", "")
+    prev_text = state.get("last_canonical") or _read_text(canonical_path)
     first_run = "last_hash" not in state
     changed = (not first_run) and new_hash != state.get("last_hash")
 
-    state.update(last_run=ts, last_hash=new_hash, last_canonical=new_text,
+    state.pop("last_canonical", None)
+    state.update(last_run=ts, last_hash=new_hash,
                  tick_count=state.get("tick_count", 0) + 1)
+    if first_run or changed:
+        canonical_path.write_text(new_text, encoding="utf-8")
 
     event = {"event": "none", "watch": name}
     if changed or (first_run and cfg["on"] == "start"):
