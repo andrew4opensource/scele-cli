@@ -53,7 +53,7 @@ for the old scraping implementation and is no longer a dependency of anything he
   - `packaging/scele.spec` + `packaging/entry.py` + `scripts/build-binary.sh` — PyInstaller
     one-file build (this OS/arch only; no cross-compile).
   - `.github/workflows/release.yml` — on push to `main`, if `__version__` has no `v<version>`
-    tag yet: build binaries on 5 runners + sdist/wheel, push the tag, publish a GitHub Release
+    tag yet: build binaries on 4 runners + sdist/wheel, push the tag, publish a GitHub Release
     with `checksums.txt`. `workflow_dispatch` with `force` rebuilds an existing version.
     `ci.yml` runs pytest on push/PR.
   - `RELEASING.md` is the operator guide.

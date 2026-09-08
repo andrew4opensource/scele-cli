@@ -11,8 +11,9 @@ git push origin main
 Every push to `main` runs `.github/workflows/release.yml`. The `check` job reads
 `__version__` from `src/scele/__init__.py`; if no `v<version>` tag exists yet it:
 
-1. builds the `scele` **onedir bundle** on 5 runners
-   (`linux-x86_64`, `linux-aarch64`, `macos-x86_64`, `macos-arm64`, `windows-x86_64`),
+1. builds the `scele` **onedir bundle** on 4 runners
+   (`linux-x86_64`, `linux-aarch64`, `macos-arm64`, `windows-x86_64` — GitHub has
+   no Intel-mac runner any more; Intel-mac users install via `pipx`),
 2. packs each `dist/scele/` as `scele-<target>.tar.gz` (`.zip` on Windows),
 3. builds the Python `sdist` + `wheel`,
 4. pushes the `v<version>` tag,

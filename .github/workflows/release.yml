@@ -53,9 +53,6 @@ jobs:
           - target: linux-aarch64
             runs-on: ubuntu-24.04-arm
             archive: tar.gz
-          - target: macos-x86_64
-            runs-on: macos-13
-            archive: tar.gz
           - target: macos-arm64
             runs-on: macos-14
             archive: tar.gz
@@ -125,7 +122,6 @@ jobs:
           sha256sum \
             scele-linux-x86_64.tar.gz \
             scele-linux-aarch64.tar.gz \
-            scele-macos-x86_64.tar.gz \
             scele-macos-arm64.tar.gz \
             scele-windows-x86_64.zip \
             > checksums.txt

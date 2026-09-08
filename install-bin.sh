@@ -165,7 +165,9 @@ case "$os" in
     *) die "unsupported OS '$os'. Use: pipx install git+https://github.com/$REPO.git" ;;
 esac
 case "$arch" in
-    x86_64|amd64)  ARCH=x86_64 ;;
+    x86_64|amd64)
+        [ "$OS" = macos ] && die "no prebuilt binary for Intel macs. Use: pipx install git+https://github.com/$REPO.git"
+        ARCH=x86_64 ;;
     arm64|aarch64) [ "$OS" = macos ] && ARCH=arm64 || ARCH=aarch64 ;;
     *) die "unsupported architecture '$arch'" ;;
 esac
