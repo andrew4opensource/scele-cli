@@ -103,7 +103,7 @@ def run_command(command: list[str]) -> dict:
 # ---------------------------------------------------------------- storage
 
 def _slug(name: str) -> str:
-    if not _NAME_RE.match(name or ""):
+    if name in (".", "..") or not _NAME_RE.match(name or ""):
         raise WatchError(f"invalid watch name {name!r}: use letters, digits, '.', '_', '-'")
     return name
 
