@@ -307,12 +307,25 @@ def thread(s: SceleSession, discussion_id: str) -> list[Post]:
             parent=str(parent) if parent else "",
         ))
     by_id = {p.id: p for p in out}
-    for p in out:
-        depth, cur = 0, p.parent
-        while cur and cur in by_id and depth < len(out):
-            depth += 1
+    memo: dict[str, int] = {}
+
+    def _depth(pid: str) -> int:
+        chain: list[str] = []
+        seen: set[str] = set()
+        cur = pid
+        while cur in by_id and cur not in memo and cur not in seen:
+            seen.add(cur)
+            chain.append(cur)
             cur = by_id[cur].parent
-        p.depth = depth
+        # -1 so the first resolved node (a root, whose parent is not a post) is 0
+        d = memo[cur] if cur in memo else -1
+        for node in reversed(chain):
+            d += 1
+            memo[node] = d
+        return memo.get(pid, 0)
+
+    for p in out:
+        p.depth = _depth(p.id)
     return out
 
 
