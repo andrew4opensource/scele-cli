@@ -27,6 +27,7 @@ from .config import watches_dir
 
 MIN_INTERVAL = 30
 DEFAULT_INTERVAL = 300
+MAX_EVENTS = 1000
 _VOLATILE_KEYS = {"sesskey", "token", "token_preview", "age_days"}
 _NAME_RE = re.compile(r"^[A-Za-z0-9._-]+$")
 
@@ -125,8 +126,20 @@ def _write_json(path: Path, obj) -> None:
 
 def _append_event(name: str, event: dict) -> None:
     event = {"at": _now(), **event}
-    with (_dir(name) / "events.jsonl").open("a", encoding="utf-8") as fh:
+    path = _dir(name) / "events.jsonl"
+    with path.open("a", encoding="utf-8") as fh:
         fh.write(json.dumps(event, ensure_ascii=False) + "\n")
+    _trim_events(path)
+
+
+def _trim_events(path: Path) -> None:
+    """Keep events.jsonl bounded; rewrite only once it drifts well past the cap."""
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return
+    if len(lines) > MAX_EVENTS * 2:
+        path.write_text("\n".join(lines[-MAX_EVENTS:]) + "\n", encoding="utf-8")
 
 
 def _pid_alive(pid: int) -> bool:
