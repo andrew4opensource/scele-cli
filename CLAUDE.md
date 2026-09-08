@@ -52,8 +52,10 @@ for the old scraping implementation and is no longer a dependency of anything he
     Flags: `--editable`, `--from`, `--uninstall`.
   - `packaging/scele.spec` + `packaging/entry.py` + `scripts/build-binary.sh` — PyInstaller
     one-file build (this OS/arch only; no cross-compile).
-  - `.github/workflows/release.yml` — on `v*` tag: build binaries on 5 runners + sdist/wheel,
-    publish a GitHub Release with `checksums.txt`. `ci.yml` runs pytest on push/PR.
+  - `.github/workflows/release.yml` — on push to `main`, if `__version__` has no `v<version>`
+    tag yet: build binaries on 5 runners + sdist/wheel, push the tag, publish a GitHub Release
+    with `checksums.txt`. `workflow_dispatch` with `force` rebuilds an existing version.
+    `ci.yml` runs pytest on push/PR.
   - `RELEASING.md` is the operator guide.
 - `skills/scele/SKILL.md` — the Agent Skill. Installs via `scele skill` (from `npm install -g scele-cli`),
   `npx scele-cli skill`, or `npx skills add Andrew4Coding/scele-cli`. Keep SKILL.md,

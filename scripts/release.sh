@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
-# Cut a release: bump the version, commit, tag, push. CI builds the binaries.
+# Cut a release: bump the version and commit. Pushing the commit to main lets
+# the Release workflow detect the new version, tag v<version>, and publish the
+# binaries. CI owns the tag now — this script no longer creates one.
 #
 #   scripts/release.sh 0.2.0
 #
@@ -42,8 +44,7 @@ PY
 fi
 
 git commit -m "release: v$VERSION"
-git tag -a "v$VERSION" -m "v$VERSION"
 
 echo
-echo "Committed and tagged v$VERSION. Push to trigger the Release workflow:"
-echo "    git push origin main --follow-tags"
+echo "Committed release: v$VERSION. Push to main to trigger the Release workflow:"
+echo "    git push origin main"
