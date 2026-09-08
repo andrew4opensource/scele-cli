@@ -13,6 +13,8 @@ _TAG = re.compile(r"<[^>]+>")
 _WS = re.compile(r"[ \t\f\v]+")
 _BLANKS = re.compile(r"\n\s*\n\s*\n+")
 _DROP = re.compile(r"(?is)<(script|style)\b[^>]*>.*?</\1>")
+_BR = re.compile(r"(?i)<\s*br\s*/?\s*>")
+_BLOCK_END = re.compile(r"(?i)</\s*(p|div|li|tr|h[1-6])\s*>")
 _WIB = 7 * 3600  # SCELE reports epochs in UTC; Fasilkom is UTC+7
 
 
@@ -21,8 +23,8 @@ def clean_html(text: str | None, max_len: int | None = None) -> str:
     if not text:
         return ""
     text = _DROP.sub(" ", text)
-    text = re.sub(r"(?i)<\s*br\s*/?\s*>", "\n", text)
-    text = re.sub(r"(?i)</\s*(p|div|li|tr|h[1-6])\s*>", "\n", text)
+    text = _BR.sub("\n", text)
+    text = _BLOCK_END.sub("\n", text)
     text = _TAG.sub("", text)
     text = _html.unescape(text)
     text = _WS.sub(" ", text)
