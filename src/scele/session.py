@@ -63,6 +63,7 @@ class SceleSession:
             token = stored["token"] if stored else None
         self.token = token
         self._site_info: dict | None = None
+        self._contents: dict[int, list] = {}
 
     # ------------------------------------------------------------------ calls
 
@@ -101,6 +102,13 @@ class SceleSession:
         if self._site_info is None or refresh:
             self._site_info = self.ws("core_webservice_get_site_info")
         return self._site_info
+
+    def course_contents(self, course_id: int) -> list:
+        """`core_course_get_contents` for a course, memoised for this session."""
+        cid = int(course_id)
+        if cid not in self._contents:
+            self._contents[cid] = self.ws("core_course_get_contents", courseid=cid) or []
+        return self._contents[cid]
 
     def userid(self) -> int:
         return int(self.site_info()["userid"])

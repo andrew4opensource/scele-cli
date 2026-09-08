@@ -158,7 +158,7 @@ def courses_in_category(s: SceleSession, category_id: str) -> list[Course]:
 
 def course(s: SceleSession, course_id: str) -> list[Section]:
     """Return the section/activity outline of a course."""
-    data = s.ws("core_course_get_contents", courseid=int(course_id)) or []
+    data = s.course_contents(course_id)
     out: list[Section] = []
     for sec in data:
         acts = [
@@ -200,7 +200,7 @@ def forums(s: SceleSession, course_id: str) -> list[Activity]:
 
 def resources(s: SceleSession, course_id: str) -> list[Resource]:
     """Return downloadable file/folder/url resources in a course."""
-    data = s.ws("core_course_get_contents", courseid=int(course_id)) or []
+    data = s.course_contents(course_id)
     out: list[Resource] = []
     for sec in data:
         for m in (sec.get("modules") or []):
