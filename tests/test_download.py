@@ -69,3 +69,21 @@ def test_download_reports_progress_and_closes_response(tmp_path: Path):
     assert destination.read_bytes() == b"abcdef"
     assert progress == [(0, 6), (3, 6), (6, 6)]
     assert response.closed is True
+
+
+class _EvilResponse(_Response):
+    headers = {
+        "content-disposition": 'attachment; filename="../../../../etc/evil.txt"',
+        "content-length": "6",
+    }
+
+
+def test_download_strips_path_traversal_from_filename(tmp_path: Path):
+    destination = api.download(
+        _Session(_EvilResponse()),
+        "/pluginfile.php/1/mod_resource/content/0/file.txt",
+        tmp_path,
+    )
+
+    assert destination == (tmp_path / "evil.txt").resolve()
+    assert destination.read_bytes() == b"abcdef"

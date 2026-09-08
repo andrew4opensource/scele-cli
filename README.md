@@ -130,7 +130,6 @@ scele subscribe 17474 [--off]
 scele tui          # needs the [tui] extra: pipx inject scele-cli textual
 ```
 
-
 ### Watch a command for changes
 
 ```bash

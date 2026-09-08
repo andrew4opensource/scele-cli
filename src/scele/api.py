@@ -158,7 +158,7 @@ def courses_in_category(s: SceleSession, category_id: str) -> list[Course]:
 
 def course(s: SceleSession, course_id: str) -> list[Section]:
     """Return the section/activity outline of a course."""
-    data = s.ws("core_course_get_contents", courseid=int(course_id)) or []
+    data = s.course_contents(course_id)
     out: list[Section] = []
     for sec in data:
         acts = [
@@ -200,7 +200,7 @@ def forums(s: SceleSession, course_id: str) -> list[Activity]:
 
 def resources(s: SceleSession, course_id: str) -> list[Resource]:
     """Return downloadable file/folder/url resources in a course."""
-    data = s.ws("core_course_get_contents", courseid=int(course_id)) or []
+    data = s.course_contents(course_id)
     out: list[Resource] = []
     for sec in data:
         for m in (sec.get("modules") or []):
@@ -261,12 +261,12 @@ def _assignment_info(s: SceleSession, a: dict) -> AssignmentInfo:
 def assignment_detail(s: SceleSession, ref: str) -> AssignmentInfo:
     """Full detail for one assignment, found by instance id OR cmid."""
     want = int(ref)
-    for c in my_courses(s):
-        data = s.ws("mod_assign_get_assignments", courseids=[int(c.id)]) or {}
-        for cc in data.get("courses") or []:
-            for a in cc.get("assignments") or []:
-                if a.get("id") == want or a.get("cmid") == want:
-                    return _assignment_info(s, a)
+    ids = [int(c.id) for c in my_courses(s)]
+    data = s.ws("mod_assign_get_assignments", courseids=ids) or {}
+    for cc in data.get("courses") or []:
+        for a in cc.get("assignments") or []:
+            if a.get("id") == want or a.get("cmid") == want:
+                return _assignment_info(s, a)
     raise RequestFailedError(f"assignment {ref} not found in your courses")
 
 
@@ -307,12 +307,25 @@ def thread(s: SceleSession, discussion_id: str) -> list[Post]:
             parent=str(parent) if parent else "",
         ))
     by_id = {p.id: p for p in out}
-    for p in out:
-        depth, cur = 0, p.parent
-        while cur and cur in by_id and depth < len(out):
-            depth += 1
+    memo: dict[str, int] = {}
+
+    def _depth(pid: str) -> int:
+        chain: list[str] = []
+        seen: set[str] = set()
+        cur = pid
+        while cur in by_id and cur not in memo and cur not in seen:
+            seen.add(cur)
+            chain.append(cur)
             cur = by_id[cur].parent
-        p.depth = depth
+        # -1 so the first resolved node (a root, whose parent is not a post) is 0
+        d = memo[cur] if cur in memo else -1
+        for node in reversed(chain):
+            d += 1
+            memo[node] = d
+        return memo.get(pid, 0)
+
+    for p in out:
+        p.depth = _depth(p.id)
     return out
 
 
@@ -618,8 +631,11 @@ def download(
     if "filename=" in disp:
         fname = disp.split("filename=", 1)[1].strip('"; ')
     fname = fname or url.split("?", 1)[0].rstrip("/").rsplit("/", 1)[-1] or "download"
+    fname = os.path.basename(fname.replace("\\", "/")) or "download"
     out_dir.mkdir(parents=True, exist_ok=True)
-    dest = out_dir / fname
+    dest = (out_dir / fname).resolve()
+    if dest.parent != out_dir.resolve():
+        raise RequestFailedError(f"refusing path-traversing filename: {fname!r}")
     total_header = resp.headers.get("content-length")
     try:
         total = int(total_header) if total_header else None

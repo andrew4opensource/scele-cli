@@ -68,6 +68,20 @@ def test_thread_builds_parent_and_depth():
     assert all(isinstance(p, Post) for p in posts)
 
 
+def test_thread_depth_with_branches_and_shared_ancestors():
+    s = FakeSession({
+        "mod_forum_get_discussion_posts": {"posts": [
+            {"id": 1, "parentid": 0, "message": "r", "timecreated": 0},
+            {"id": 2, "parentid": 1, "message": "a", "timecreated": 0},
+            {"id": 3, "parentid": 1, "message": "b", "timecreated": 0},
+            {"id": 4, "parentid": 3, "message": "c", "timecreated": 0},
+            {"id": 5, "parentid": 4, "message": "d", "timecreated": 0},
+        ]},
+    })
+    posts = api.thread(s, "1")
+    assert {p.id: p.depth for p in posts} == {"1": 0, "2": 1, "3": 1, "4": 2, "5": 3}
+
+
 def test_assignment_status_summarizes_submission():
     s = FakeSession({
         "core_course_get_course_module": {"cm": {"id": 55010, "instance": 900,
