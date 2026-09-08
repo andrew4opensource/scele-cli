@@ -3,7 +3,8 @@ exact line-level changes in its JSON output, optionally to a webhook.
 
 Storage (POSIX): ``~/.config/scele/watches/<name>/``
   watch.json   -- immutable config {name, command, interval, webhooks, headers, on, created}
-  state.json   -- {last_hash, last_canonical, last_run, last_change, tick_count}
+  state.json   -- {last_hash, last_run, last_change, tick_count}
+  last_canonical.txt -- canonical text of the last capture (for diffing)
   events.jsonl -- append-only log of change / error / webhook events
   daemon.pid   -- {pid, started} for the detached process, when running detached
   daemon.log   -- stdout/stderr of the detached process
@@ -118,6 +119,13 @@ def _read_json(path: Path, default):
         return json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         return default
+
+
+def _read_text(path: Path) -> str:
+    try:
+        return path.read_text(encoding="utf-8")
+    except OSError:
+        return ""
 
 
 def _write_json(path: Path, obj) -> None:
@@ -270,14 +278,18 @@ def tick(name: str) -> dict:
         _write_json(d / "state.json", state)
         return event
 
+    canonical_path = d / "last_canonical.txt"
     new_text = canonical(result["data"])
     new_hash = _hash(new_text)
-    prev_text = state.get("last_canonical", "")
+    prev_text = state.get("last_canonical") or _read_text(canonical_path)
     first_run = "last_hash" not in state
     changed = (not first_run) and new_hash != state.get("last_hash")
 
-    state.update(last_run=ts, last_hash=new_hash, last_canonical=new_text,
+    state.pop("last_canonical", None)
+    state.update(last_run=ts, last_hash=new_hash,
                  tick_count=state.get("tick_count", 0) + 1)
+    if first_run or changed:
+        canonical_path.write_text(new_text, encoding="utf-8")
 
     event = {"event": "none", "watch": name}
     if changed or (first_run and cfg["on"] == "start"):
