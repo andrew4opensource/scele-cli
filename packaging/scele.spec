@@ -6,7 +6,14 @@
 # temp dir on every invocation — seconds per run. onedir starts in ~0.1s.
 # The release workflow tars dist/scele/ into scele-<target>.tar.gz (.zip on
 # Windows); install-bin.sh unpacks it and links dist/scele/scele onto PATH.
+import sys
+
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules
+
+# strip is only safe on Linux: on Windows the MSYS `strip` corrupts the bundled
+# python3xx.dll ("Failed to load Python DLL"), and on macOS it can break arm64
+# signatures.
+strip_binaries = sys.platform.startswith("linux")
 
 # Ship the package's non-Python files (the TUI stylesheet at
 # scele/tui/styles/app.tcss). The TUI itself is optional: if `textual` was
@@ -44,7 +51,7 @@ exe = EXE(
     name="scele",
     debug=False,
     bootloader_ignore_signals=False,
-    strip=True,
+    strip=strip_binaries,
     upx=False,
     console=True,
     disable_windowed_traceback=False,
@@ -58,7 +65,7 @@ coll = COLLECT(
     exe,
     a.binaries,
     a.datas,
-    strip=True,
+    strip=strip_binaries,
     upx=False,
     name="scele",
 )
