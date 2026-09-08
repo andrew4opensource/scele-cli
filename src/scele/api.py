@@ -261,12 +261,12 @@ def _assignment_info(s: SceleSession, a: dict) -> AssignmentInfo:
 def assignment_detail(s: SceleSession, ref: str) -> AssignmentInfo:
     """Full detail for one assignment, found by instance id OR cmid."""
     want = int(ref)
-    for c in my_courses(s):
-        data = s.ws("mod_assign_get_assignments", courseids=[int(c.id)]) or {}
-        for cc in data.get("courses") or []:
-            for a in cc.get("assignments") or []:
-                if a.get("id") == want or a.get("cmid") == want:
-                    return _assignment_info(s, a)
+    ids = [int(c.id) for c in my_courses(s)]
+    data = s.ws("mod_assign_get_assignments", courseids=ids) or {}
+    for cc in data.get("courses") or []:
+        for a in cc.get("assignments") or []:
+            if a.get("id") == want or a.get("cmid") == want:
+                return _assignment_info(s, a)
     raise RequestFailedError(f"assignment {ref} not found in your courses")
 
 
