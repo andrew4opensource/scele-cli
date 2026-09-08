@@ -1,6 +1,6 @@
 {
   "name": "scele-cli",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Command-line client and agent skill for SCELE (Moodle) at Fasilkom UI",
   "type": "module",
   "preferGlobal": true,
