@@ -618,8 +618,11 @@ def download(
     if "filename=" in disp:
         fname = disp.split("filename=", 1)[1].strip('"; ')
     fname = fname or url.split("?", 1)[0].rstrip("/").rsplit("/", 1)[-1] or "download"
+    fname = os.path.basename(fname.replace("\\", "/")) or "download"
     out_dir.mkdir(parents=True, exist_ok=True)
-    dest = out_dir / fname
+    dest = (out_dir / fname).resolve()
+    if dest.parent != out_dir.resolve():
+        raise RequestFailedError(f"refusing path-traversing filename: {fname!r}")
     total_header = resp.headers.get("content-length")
     try:
         total = int(total_header) if total_header else None
