@@ -40,6 +40,12 @@ for the old scraping implementation and is no longer a dependency of anything he
     reboot persistence. A watch exists only while running: when its loop ends it deletes
     its own directory, and `watch ls` prunes any watch whose process is gone. CLI surface
     is the `watch` group in `cli.py` (`ls`, `run`, `rm`, `clear`, `rename`, `logs`).
+  - `update.py` — `scele update [VERSION] [--check] [--force]`: resolves a GitHub release tag
+    and reinstalls via the detected method (`binary` re-runs `install-bin.sh`/`.ps1` — detached
+    on Windows since the running exe can't be replaced; `pipx`; `pip`; `npm`). A source checkout
+    is refused with a `git pull` hint. Installer output goes to stderr.
+    Then refreshes any installed skill (`~/.claude/skills/scele/`, `./.claude/skills/scele/`)
+    from the same tag's SKILL.md; a skill failure lands in `skill_error`, it never fails the update.
   - `config.py` — token store. `~/.config/scele/token.json` (or `$XDG_CONFIG_HOME`) on Unix,
     `%APPDATA%\scele\` on Windows; override with `SCELE_CONFIG_DIR`. Base URL: `SCELE_BASE_URL`.
     WS short name: `SCELE_WS_SERVICE` (default `moodle_mobile_app`).

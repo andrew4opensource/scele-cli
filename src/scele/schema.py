@@ -39,6 +39,8 @@ RETURNS: dict[str, str] = {
     "reply": "ActionResult & {url: string}",
     "download": "ActionResult & {path: string}",
     "skill": "ActionResult & {path: string, scope: string}",
+    "update": "ActionResult & {method: string, current: string, target: string, updated: bool, "
+              "update_available?: bool, pending?: bool, skill_updated?: string[], skill_error?: string}",
     "tui": "launches the interactive terminal UI (no stdout document)",
     "watch": "subcommands: start -> ActionResult & {name, detached, pid?}; "
              "ls -> {name, command, interval, status, last_change, tick_count}[] "
@@ -79,6 +81,7 @@ EXAMPLES: dict[str, str] = {
     "reply": "scele reply 553756 --message 'Thanks' --yes",
     "download": "scele download 222038 -o ./dl",
     "skill": "scele skill [--project] [--uninstall]",
+    "update": "scele update [VERSION] [--check]",
     "tui": "scele tui",
     "watch": "scele watch deadlines --interval 600 --webhook https://hooks.example/x -d",
 }

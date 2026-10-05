@@ -122,6 +122,10 @@ scele download 222038 -o ./dl     # by resource cmid
 
 scele announcements
 scele subscribe 17474 [--off]
+
+scele update                      # update scele (and an installed skill) to the latest release
+scele update 0.2.3                # ...or to a specific version
+scele update --check              # just compare installed vs latest
 ```
 
 ### Interactive TUI
@@ -173,6 +177,7 @@ src/scele/
   config.py     config-dir + token store
   schema.py     `scele schema` manifest
   watch.py      background command monitoring
+  update.py     `scele update` self-update
 ```
 
 See `ENDPOINTS.md` for the web-service functions behind each command, `AGENTS.md.bak` for

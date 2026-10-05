@@ -122,6 +122,17 @@ def skill(ctx, project, custom_dir, uninstall):
 
 
 @main.command()
+@click.argument("version", required=False)
+@click.option("--check", is_flag=True, help="Only report the current and target versions.")
+@click.option("--force", is_flag=True, help="Reinstall even if already on the target version.")
+@click.pass_context
+def update(ctx, version, check, force):
+    """Update scele to the latest release, or to VERSION (e.g. 0.2.3)."""
+    from .update import update as do_update
+    _out(ctx, _guard(lambda: do_update(version, check=check, force=force)))
+
+
+@main.command()
 @click.option("-u", "--username", help="SCELE username (else prompted, or $SCELE_USERNAME).")
 @click.option("-p", "--password", help="SCELE password (else prompted, or $SCELE_PASSWORD). "
                                        "Avoid on the command line; prefer the prompt or env var.")

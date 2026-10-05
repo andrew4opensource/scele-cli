@@ -79,6 +79,11 @@ Read-only: `courses`, `course-detail <id>`, `people <id>`, `grades <id>`,
 `scele tui` launches an interactive terminal UI over the same data (needs the `[tui]`
 extra: `pipx inject scele-cli textual`); it prints no JSON document.
 
+`scele update [VERSION] [--check] [--force]` reinstalls scele at the latest release (or
+`VERSION`) using the method it was installed with (binary, pipx, pip, npm). `--check` only
+reports `current` vs `target`. It also refreshes any installed copy of this skill
+(`~/.claude/skills/scele/`, `./.claude/skills/scele/`) to the same release; see `skill_updated`. Don't run it unless the user asks.
+
 Writes — confirm with the user first; `post`/`reply`/`submit` also need `--yes`:
 `enrol <course> [--key K]`, `subscribe <forum> [--off]`,
 `post <forum> --subject S --message M --yes`, `reply <post> --message M [--subject S] --yes`,
