@@ -7,10 +7,7 @@
 
 import requests
 
-from . import __version__
 from .config import base_url, load_token
-
-USER_AGENT = f"scele-cli/{__version__} (+https://github.com/Andrew4Coding/scele-cli)"
 
 # Moodle exception errorcodes that mean "token is gone / re-login required".
 _REAUTH_CODES = {
@@ -57,7 +54,6 @@ class SceleSession:
     def __init__(self, token: str | None = None):
         self.base = base_url()
         self.http = requests.Session()
-        self.http.headers["User-Agent"] = USER_AGENT
         if token is None:
             stored = load_token()
             token = stored["token"] if stored else None

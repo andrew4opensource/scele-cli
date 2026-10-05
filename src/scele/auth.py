@@ -16,12 +16,9 @@ from getpass import getpass
 
 import requests
 
-from . import __version__
 from .config import base_url, save_token, ws_service
 from .output import fail
 from .session import SceleSession
-
-USER_AGENT = f"scele-cli/{__version__} (+https://github.com/Andrew4Coding/scele-cli)"
 
 
 def _say(msg: str = "") -> None:
@@ -47,7 +44,6 @@ def terminal_login(username: str | None = None, password: str | None = None) -> 
         resp = requests.post(
             f"{base}/login/token.php",
             data={"username": username, "password": password, "service": ws_service()},
-            headers={"User-Agent": USER_AGENT},
             timeout=30,
         )
         resp.raise_for_status()
